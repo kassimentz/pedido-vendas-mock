@@ -7,12 +7,14 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.mockito.Mockito.*;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.algaworks.tdd.email.NotificadorEmail;
 import com.algaworks.tdd.model.Pedido;
+import com.algaworks.tdd.model.StatusPedido;
 import com.algaworks.tdd.model.builder.PedidoBuilder;
 import com.algaworks.tdd.repository.Pedidos;
 import com.algaworks.tdd.sms.NotificadorSms;
@@ -24,19 +26,19 @@ public class PedidoServiceTest {
 
 	@Mock
 	private Pedidos pedidos;
-	
+
 	@Mock
 	private NotificadorEmail email;
-	
+
 	@Mock
-	private NotificadorSms sms; 
+	private NotificadorSms sms;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		
+
 		List<AcaoLancamentoPedido> acoes = Arrays.asList(pedidos, email, sms);
-		pedidoService = new PedidoService(acoes);
+		pedidoService = new PedidoService(pedidos, acoes);
 		pedido = new PedidoBuilder().comValor(100.0).para("Joao", "joao@joao.com", "32323232").construir();
 	}
 
@@ -50,18 +52,40 @@ public class PedidoServiceTest {
 	@Test
 	public void deveSalvarPedidoNoBancoDeDados() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(pedidos).executar(pedido);
+		verify(pedidos).executar(pedido);
 	}
-	
+
 	@Test
 	public void deveNotificarPorEmail() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(email).executar(pedido);
+		verify(email).executar(pedido);
 	}
 
 	@Test
 	public void deveNotificarPorSMS() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(sms).executar(pedido);
+		verify(sms).executar(pedido);
+	}
+
+	@Test
+	public void devePagarPedidoPendente() throws Exception {
+		Long codigoPedido = 135L;
+
+		Pedido pedidoPendente = new Pedido();
+		pedidoPendente.setStatus(StatusPedido.PENDENTE);
+		when(pedidos.buscarPeloCodigo(codigoPedido)).thenReturn(pedidoPendente);
+		Pedido pedidoPago = pedidoService.pagar(codigoPedido);
+		assertEquals(StatusPedido.PAGO, pedidoPago.getStatus());
+	}
+	
+	@Test(expected = StatusPedidoInvalidoException.class)
+	public void deveNegarPagamento() throws Exception {
+		Long codigoPedido = 135L;
+
+		Pedido pedidoPendente = new Pedido();
+		pedidoPendente.setStatus(StatusPedido.PAGO);
+		when(pedidos.buscarPeloCodigo(codigoPedido)).thenReturn(pedidoPendente);
+		pedidoService.pagar(codigoPedido);
+		
 	}
 }

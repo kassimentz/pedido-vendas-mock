@@ -9,4 +9,9 @@ public class Pedidos implements AcaoLancamentoPedido{
 	public void executar(Pedido pedido) {
 		System.out.println("Salvando no banco de dados...");
 	}
+	
+	public Pedido buscarPeloCodigo(Long codigo){
+		//iria buscar no banco pelo codigo.
+		return new Pedido();
+	}
 }
