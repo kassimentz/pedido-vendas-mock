@@ -1,10 +1,12 @@
 package com.algaworks.tdd.repository;
 
 import com.algaworks.tdd.model.Pedido;
+import com.algaworks.tdd.service.AcaoLancamentoPedido;
 
-public class Pedidos {
+public class Pedidos implements AcaoLancamentoPedido{
 
-	public void guardar(Pedido pedido){
+	@Override
+	public void executar(Pedido pedido) {
 		System.out.println("Salvando no banco de dados...");
 	}
 }

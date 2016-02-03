@@ -2,6 +2,9 @@ package com.algaworks.tdd.service;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -31,7 +34,9 @@ public class PedidoServiceTest {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		pedidoService = new PedidoService(pedidos, email, sms);
+		
+		List<AcaoLancamentoPedido> acoes = Arrays.asList(pedidos, email, sms);
+		pedidoService = new PedidoService(acoes);
 		pedido = new PedidoBuilder().comValor(100.0).para("Joao", "joao@joao.com", "32323232").construir();
 	}
 
@@ -45,18 +50,18 @@ public class PedidoServiceTest {
 	@Test
 	public void deveSalvarPedidoNoBancoDeDados() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(pedidos).guardar(pedido);
+		Mockito.verify(pedidos).executar(pedido);
 	}
 	
 	@Test
 	public void deveNotificarPorEmail() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(email).enviar(pedido);
+		Mockito.verify(email).executar(pedido);
 	}
 
 	@Test
 	public void deveNotificarPorSMS() throws Exception {
 		pedidoService.lancar(pedido);
-		Mockito.verify(sms).notificar(pedido);
+		Mockito.verify(sms).executar(pedido);
 	}
 }
